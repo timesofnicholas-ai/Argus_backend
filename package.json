@@ -1,0 +1,25 @@
+{
+  "name": "energy-pipeline-workers",
+  "version": "1.0.0",
+  "description": "Redis/BullMQ worker services for the Energy Intelligence Platform pipeline",
+  "type": "module",
+  "scripts": {
+    "start:api": "node src/enqueue-api.js",
+    "start:cleaning": "node src/workers/cleaning-worker.js",
+    "start:llm": "node src/workers/llm-batch-worker.js",
+    "start:entity": "node src/workers/entity-resolution-worker.js",
+    "start:dlq-watcher": "node src/workers/dlq-watcher.js",
+    "dev": "concurrently \"npm:start:api\" \"npm:start:cleaning\" \"npm:start:llm\" \"npm:start:entity\" \"npm:start:dlq-watcher\""
+  },
+  "dependencies": {
+    "bullmq": "^5.7.0",
+    "express": "^4.19.2",
+    "ioredis": "^5.4.1",
+    "pg": "^8.11.5",
+    "dotenv": "^16.4.5",
+    "@google/generative-ai": "^0.14.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
