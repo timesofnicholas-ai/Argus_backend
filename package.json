@@ -4,6 +4,7 @@
   "description": "Redis/BullMQ worker services for the Energy Intelligence Platform pipeline",
   "type": "module",
   "scripts": {
+    "start": "npm run dev",
     "start:api": "node src/enqueue-api.js",
     "start:cleaning": "node src/workers/cleaning-worker.js",
     "start:llm": "node src/workers/llm-batch-worker.js",
