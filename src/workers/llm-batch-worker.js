@@ -2,7 +2,7 @@ import { Worker, DelayedError } from "bullmq";
 import { connection, sendToDeadLetter, llmBatchQueue } from "../queues.js";
 import { config, QUEUE_NAMES } from "../config.js";
 import { writeEnrichment, writeDeadLetter, getUnenrichedArticlesBatch } from "../db.js";
-import { tryReserveDailyCall, tryReserveMinuteSlot, callGeminiBatch } from "../gemini.js";
+import { tryReserveDailyCall, tryReserveMinuteSlot, callLLMBatch } from "../llm-provider.js";
 
 function stripHtml(html) {
   return (html || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
@@ -77,7 +77,7 @@ async function flushBatch() {
 
     let results;
     try {
-      results = await callGeminiBatch(payload);
+      results = await callLLMBatch(payload);
     } catch (err) {
       // Whole-batch failure: reject each job individually rather than
       // manually re-adding jobs. BullMQ applies the queue's configured
@@ -95,7 +95,7 @@ async function flushBatch() {
         // Model dropped this id from the response. Counts as a real
         // failed attempt now (capped, goes to DLQ after 5 tries) instead
         // of retrying forever.
-        e.reject(new Error(`Gemini response missing id ${e.job.data.id}`));
+        e.reject(new Error(`LLM response missing id ${e.job.data.id}`));
         continue;
       }
       try {
@@ -182,6 +182,6 @@ worker.on("failed", async (job, err) => {
 
 console.log(
   `LLM Batch Worker running. Batch size ${config.llmBatch.size}, window ${config.llmBatch.windowMs}ms, ` +
-  `worker concurrency ${config.llmBatch.workerConcurrency}, RPD limit ${config.gemini.rpdLimit} ` +
-  `(${config.gemini.rpdReservedForBrief} reserved for daily brief).`
+  `worker concurrency ${config.llmBatch.workerConcurrency}, RPD limit ${config.llm.rpdLimit} ` +
+  `(${config.llm.rpdReservedForBrief} reserved for daily brief).`
 );

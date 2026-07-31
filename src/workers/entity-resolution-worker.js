@@ -2,7 +2,7 @@ import { Worker } from "bullmq";
 import { connection, sendToDeadLetter, entityResolutionQueue } from "../queues.js";
 import { config, QUEUE_NAMES } from "../config.js";
 import { findExactAlias, findFuzzyCandidates, addAlias, insertCompanyNeedsReview, writeDeadLetter } from "../db.js";
-import { tryReserveDailyCall, tryReserveMinuteSlot, callGeminiEntityDisambiguation } from "../gemini.js";
+import { tryReserveDailyCall, tryReserveMinuteSlot, callLLMEntityDisambiguation } from "../llm-provider.js";
 
 /**
  * Tiered resolution — cheapest first. Every auto-resolution ABOVE the
@@ -46,7 +46,7 @@ const worker = new Worker(QUEUE_NAMES.ENTITY_RESOLUTION, async job => {
     return { deferred: true };
   }
 
-  const [llmResult] = await callGeminiEntityDisambiguation([{ mention, candidates: result.candidates.map(c => c.name) }]);
+  const [llmResult] = await callLLMEntityDisambiguation([{ mention, candidates: result.candidates.map(c => c.name) }]);
   if (llmResult.canonical_name === "NO_MATCH" || llmResult.confidence < 0.70) {
     const newId = await insertCompanyNeedsReview(mention);
     return { resolved_company_id: newId, method: "new_entity", needs_review: true };

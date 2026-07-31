@@ -4,7 +4,7 @@ import { config } from "./config.js";
 import {
   rawIngestionQueue, cleaningQueue, llmBatchQueue, entityResolutionQueue, deadLetterQueue
 } from "./queues.js";
-import { getDailyUsage, tryReserveDailyCall } from "./gemini.js";
+import { getDailyUsage, tryReserveDailyCall } from "./llm-provider.js";
 import {
   getReferenceCounts, getArticleCounts, getDeadLetterCount, getRssSourcesSummary
 } from "./db.js";
@@ -69,14 +69,14 @@ app.post("/enqueue/raw-ingestion", async (req, res) => {
   }
 });
 
-/** Lightweight, unauthenticated status endpoint — queue depths + Gemini usage only, no DB/customer data. */
+/** Lightweight, unauthenticated status endpoint — queue depths + LLM usage only, no DB/customer data. */
 app.get("/status", async (req, res) => {
   const [raw, llm] = await Promise.all([
     rawIngestionQueue.getJobCounts(),
     llmBatchQueue.getJobCounts()
   ]);
-  const geminiUsage = await getDailyUsage();
-  res.json({ raw_ingestion_queue: raw, llm_batch_queue: llm, gemini_daily_usage: geminiUsage });
+  const llmUsage = await getDailyUsage();
+  res.json({ raw_ingestion_queue: raw, llm_batch_queue: llm, llm_daily_usage: llmUsage });
 });
 
 /**
@@ -93,7 +93,7 @@ app.get("/status", async (req, res) => {
 app.get("/admin/status", requireAdminKey, async (req, res) => {
   try {
     const [
-      queueCounts, geminiUsage, referenceCounts, articleCounts, deadLetterCount, rssSources
+      queueCounts, llmUsage, referenceCounts, articleCounts, deadLetterCount, rssSources
     ] = await Promise.all([
       Promise.all([
         rawIngestionQueue.getJobCounts(),
@@ -115,7 +115,7 @@ app.get("/admin/status", requireAdminKey, async (req, res) => {
     res.json({
       generatedAt: new Date().toISOString(),
       queues: queueCounts,
-      gemini: geminiUsage,
+      llm: llmUsage,
       db: { ...referenceCounts, articles: articleCounts, deadLetters: deadLetterCount },
       rssSources
     });

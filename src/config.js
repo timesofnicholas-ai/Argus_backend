@@ -4,12 +4,13 @@ export const config = {
   redisUrl: process.env.REDIS_URL || "redis://localhost:6379",
   databaseUrl: process.env.DATABASE_URL,
 
-  gemini: {
-    apiKey: process.env.GEMINI_API_KEY,
-    model: process.env.GEMINI_MODEL || "gemini-3-flash-preview",
-    rpmLimit: parseInt(process.env.GEMINI_RPM_LIMIT || "4", 10),
-    rpdLimit: parseInt(process.env.GEMINI_RPD_LIMIT || "20", 10),
-    rpdReservedForBrief: parseInt(process.env.GEMINI_RPD_RESERVED_FOR_BRIEF || "2", 10)
+  llm: {
+    provider: "groq",
+    apiKey: process.env.GROQ_API_KEY,
+    model: process.env.GROQ_MODEL || "llama-3.1-8b-instant",
+    rpmLimit: parseInt(process.env.LLM_RPM_LIMIT || "30", 10),
+    rpdLimit: parseInt(process.env.LLM_RPD_LIMIT || "1000", 10),
+    rpdReservedForBrief: parseInt(process.env.LLM_RPD_RESERVED_FOR_BRIEF || "10", 10)
   },
 
   api: {
@@ -25,8 +26,8 @@ export const config = {
   },
 
   llmBatch: {
-    size: parseInt(process.env.LLM_BATCH_SIZE || "20", 10),
-    windowMs: parseInt(process.env.LLM_BATCH_WINDOW_MS || "10000", 10),
+    size: parseInt(process.env.LLM_BATCH_SIZE || "30", 10),
+    windowMs: parseInt(process.env.LLM_BATCH_WINDOW_MS || "30000", 10),
 
     // NEW: jobs sitting in the in-memory buffer are still "active" from
     // BullMQ's point of view (their promise hasn't resolved yet), so
